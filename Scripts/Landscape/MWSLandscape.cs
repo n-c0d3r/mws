@@ -109,15 +109,14 @@ namespace MWS
             rootTile.transform.parent = tilesParent;
             rootTile.heightmapPixelError = pixelError;
             rootTile.basemapDistance = baseMapDist;
-
         }
 
         private void CreateRootTileAsset()
         {
             rootTileData = new TerrainData();
 
-            rootTileData.size = size;
             rootTileData.heightmapResolution = heightMapRes.x;
+            rootTileData.size = size;
             rootTileData.baseMapResolution = baseMapRes.x;
             rootTileData.alphamapResolution = alphaMapRes.x;
 
