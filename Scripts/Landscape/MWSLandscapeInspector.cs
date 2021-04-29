@@ -4,6 +4,8 @@ using UnityEngine;
 using UnityEditor;
 using MWS;
 
+
+#if UNITY_EDITOR
 namespace MWS
 {
     [CustomEditor(typeof(MWSLandscape))]
@@ -20,6 +22,9 @@ namespace MWS
             EditorGUILayout.Space(10);
 
             landscape.size = EditorGUILayout.Vector2IntField("Size",landscape.size);
+            landscape.chunksDistance = EditorGUILayout.FloatField("Chunks Distance",landscape.chunksDistance);
+            landscape.useChunksCulling = EditorGUILayout.Toggle("Chunks Culling", landscape.useChunksCulling);
+            landscape.useChunksCullingForSceneCam = EditorGUILayout.Toggle("[Editor Only] Chunks Culling For Scene Cam", landscape.useChunksCullingForSceneCam);
 
             landscape.heightMapRes= EditorGUILayout.Vector2IntField("Height Map Res", landscape.heightMapRes);
             landscape.alphaMapRes = EditorGUILayout.Vector2IntField("Alpha Map Res", landscape.alphaMapRes);
@@ -80,6 +85,8 @@ namespace MWS
                 }
             }
 
+            
+            
 
         }
 
@@ -88,8 +95,18 @@ namespace MWS
         {
             MWSLandscape landscape = (MWSLandscape)target;
             landscape.StartCoroutine(landscape.UpdateAlphaMaps());
+            if (!Application.isPlaying)
+            {
+                if(landscape.useChunksCulling)
+                    landscape.StartCoroutine(landscape.ChunksCulling());
+                else
+                {
+                    landscape.StartCoroutine(landscape.DontCulling());
+                }
+            }
         }
 
     }
 
 }
+#endif

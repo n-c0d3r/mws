@@ -12,6 +12,9 @@ namespace MWS
         public ImageDebuger debuger;
 
         [HideInInspector]
+        public float chunksDistance;
+
+        [HideInInspector]
         public Vector2Int size;
 
         [HideInInspector]
@@ -38,6 +41,11 @@ namespace MWS
         [HideInInspector]
         public Shader shader;
 
+        [HideInInspector]
+        public bool useChunksCulling;
+        [HideInInspector]
+        public bool useChunksCullingForSceneCam;
+
         public List<Terrain> tiles=new List<Terrain>();
 
         [Space(10)]
@@ -56,7 +64,15 @@ namespace MWS
         // Update is called once per frame
         void Update()
         {
+            if (useChunksCulling)
+            {
+                StartCoroutine(ChunksCulling());
 
+            }
+            else
+            {
+                StartCoroutine(DontCulling());
+            }
         }
 
         public List<Terrain> GetNeighborList()
@@ -308,8 +324,59 @@ namespace MWS
             yield return null;
         }
 
-        public IEnumerator ChunksRender()
+        public IEnumerator DontCulling()
         {
+            for(int i = 0; i < tiles.Count; i++)
+            {
+                tiles[i].gameObject.SetActive(true);
+            }
+            yield return null;
+        }
+
+        public IEnumerator ChunksCulling()
+        {
+            if (useChunksCulling)
+            {
+                for (int i = 0; i < tiles.Count; i++)
+                {
+                    //Check
+                    bool hide = true;
+#if UNITY_EDITOR
+                    if(useChunksCullingForSceneCam)
+                        if (Vector3.Distance(UnityEditor.SceneView.currentDrawingSceneView.camera.transform.position, tiles[i].transform.position) <= chunksDistance)
+                        {
+                            hide = false;
+                            goto afterCheck;
+                        }
+#endif
+                    for (int j = 0; j < Camera.allCameras.Length; j++)
+                    {
+                        if (Vector3.Distance(Camera.allCameras[j].transform.position, tiles[i].transform.position + tiles[i].terrainData.size / 2) <= chunksDistance)
+                        {
+                            hide = false;
+                            goto afterCheck;
+                        }
+                    }
+                    {
+
+                    }
+
+                //afterCheck
+                afterCheck: { }
+
+                    if (hide)
+                    {
+                        tiles[i].gameObject.SetActive(false);
+                    }
+                    else
+                    {
+                        tiles[i].gameObject.SetActive(true);
+                    }
+
+
+                }
+            }
+            
             yield return null;
         }
 
