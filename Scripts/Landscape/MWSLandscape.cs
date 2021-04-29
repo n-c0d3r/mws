@@ -9,13 +9,18 @@ namespace MWS
 {
     public class MWSLandscape : MonoBehaviour
     {
+        [HideInInspector]
+        public MWS world;
+
+        public bool setup;
+
         public ImageDebuger debuger;
 
         [HideInInspector]
         public float chunksDistance;
 
         [HideInInspector]
-        public Vector2Int size;
+        public Vector3Int size;
 
         [HideInInspector]
         public Vector2Int heightMapRes;
@@ -31,6 +36,9 @@ namespace MWS
 
         [HideInInspector]
         public float baseMapDist;
+
+        [HideInInspector]
+        public TerrainData rootTileData;
 
         [HideInInspector]
         public Terrain rootTile;
@@ -74,6 +82,48 @@ namespace MWS
                 StartCoroutine(DontCulling());
             }
         }
+
+
+        public IEnumerator Setup()
+        {
+            setup = true;
+            CreateRootTileAsset();
+            CreateRootTile();
+            CreateFirstLayer();
+            StartCoroutine(RefreshTiles());
+            yield return null;
+        }
+
+        public void CreateFirstLayer()
+        {
+            MWSTileLayer layer = new MWSTileLayer();
+            layers.Add(layer);
+        }
+
+        public void CreateRootTile()
+        {
+
+            GameObject rootTileGObj =  Terrain.CreateTerrainGameObject(rootTileData);
+            rootTileGObj.transform.parent = tilesParent;
+            rootTile = rootTileGObj.GetComponent<Terrain>();
+            rootTile.transform.parent = tilesParent;
+            rootTile.heightmapPixelError = pixelError;
+            rootTile.basemapDistance = baseMapDist;
+
+        }
+
+        private void CreateRootTileAsset()
+        {
+            rootTileData = new TerrainData();
+
+            rootTileData.size = size;
+            rootTileData.heightmapResolution = heightMapRes.x;
+            rootTileData.baseMapResolution = baseMapRes.x;
+            rootTileData.alphamapResolution = alphaMapRes.x;
+
+
+        }
+
 
         public List<Terrain> GetNeighborList()
         {
@@ -120,6 +170,7 @@ namespace MWS
         {
             tiles.Clear();
             tiles = GetNeighborList();
+            terrainLayers= new List<TerrainLayer>();
 
             StartCoroutine(RefreshTilesLayers());
             StartCoroutine(RefreshTilesSettings());
@@ -147,14 +198,22 @@ namespace MWS
             terrainLayers.Clear();
 
             //Create Layers
-            for(int i = 0; i < layers.Count; i++)
+            UnityEditor.AssetDatabase.DeleteAsset("Assets/MWS/Datas/world-" + world.id + "/layers");
+            UnityEditor.AssetDatabase.CreateFolder("Assets/MWS/Datas/world-" + world.id, "layers");
+            for (int i = 0; i < layers.Count; i++)
             {
                 TerrainLayer terrainLayer = new TerrainLayer();
                 System.Guid g = System.Guid.NewGuid();
                 string GuidString = System.Convert.ToBase64String(g.ToByteArray());
                 GuidString = GuidString.Replace("=", "");
                 GuidString = GuidString.Replace("+", "");
-                UnityEditor.AssetDatabase.CreateAsset(terrainLayer,"Assets/MWS/TerrainLayers/terrainLayer" + GuidString + ".terrainlayer");
+                GuidString = GuidString.Replace("/", "");
+                GuidString = GuidString.Replace("\\", "");
+                GuidString = GuidString.Replace(".", "");
+
+                Debug.Log("Assets/MWS/Datas/world-" + world.id + "/layers/layer-" + GuidString + ".terrainlayer");
+
+                UnityEditor.AssetDatabase.CreateAsset(terrainLayer, "Assets/MWS/Datas/world-" + world.id + "/layers/layer-" + GuidString + ".terrainlayer");
                 terrainLayers.Add(terrainLayer);
             }
 
@@ -297,7 +356,7 @@ namespace MWS
                 for(int j = 0; j < alphaMapCount; j++)
                 {
 
-                    debuger.image = tiles[i].terrainData.alphamapTextures[j];
+                    //debuger.image = tiles[i].terrainData.alphamapTextures[j];
                     tiles[i].materialTemplate.SetTexture("AlphaMap"+(j).ToString(),tiles[i].terrainData.alphamapTextures[j]);
 
                 }
