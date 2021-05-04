@@ -6,6 +6,7 @@ using MWS;
 
 namespace MWS
 {
+
     public class MWSEditor : EditorWindow
     {
         [MenuItem("MWS/Create/New World")]
@@ -28,17 +29,25 @@ namespace MWS
             landscape.world = mws;
 
             GameObject tilesGObj = new GameObject("Tiles");
-            tilesGObj.transform.parent = landscape.transform;
+            tilesGObj.transform.parent = mws.transform;
             landscape.tilesParent = tilesGObj.transform;
 
             GameObject plantsGObj = new GameObject("Plants");
             MWSPlants plants = plantsGObj.AddComponent<MWSPlants>();
 
             mws.plants = plants;
+            plants.world = mws;
 
             landscape.transform.parent = MWSGObj.transform;
             plants.transform.parent = MWSGObj.transform;
 
+        }
+
+        [MenuItem("MWS/Fix/Refresh World")]
+        public static void RefreshWorld()
+        {
+            MWS mws = GameObject.FindObjectOfType<MWS>();
+            mws.plants.world = mws;
         }
     }
 
