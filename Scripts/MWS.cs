@@ -10,6 +10,7 @@ namespace MWS
     public class MWS : MonoBehaviour
     {
         public string id;
+
         public MWSLandscape landscape;
         public MWSPlants plants;
 
